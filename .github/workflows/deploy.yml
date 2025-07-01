@@ -1,0 +1,55 @@
+name: Deploy Infrastructure
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+      
+    - name: Install SSH key
+      uses: shimataro/ssh-key-action@v2
+      with:
+        key: ${{ secrets.SSH_PRIVATE_KEY }}
+        known_hosts: ${{ secrets.KNOWN_HOSTS }}
+        
+    - name: Deploy to NGINX (192.168.140.132)
+      run: |
+        ssh -o StrictHostKeyChecking=no otus@192.168.140.132 "
+          sudo apt-get update && sudo apt-get install -y git &&
+          if [ ! -d '/opt/otus2025' ]; then
+            sudo git clone https://github.com/VKarpovV/otus2025.git /opt/otus2025
+          fi &&
+          cd /opt/otus2025 && sudo git pull &&
+          sudo chmod +x scripts/*.sh &&
+          sudo ./scripts/deploy.sh
+        "
+        
+    - name: Deploy to Apache+MySQL (192.168.140.133)
+      run: |
+        ssh -o StrictHostKeyChecking=no otus@192.168.140.133 "
+          sudo apt-get update && sudo apt-get install -y git &&
+          if [ ! -d '/opt/otus2025' ]; then
+            sudo git clone https://github.com/VKarpovV/otus2025.git /opt/otus2025
+          fi &&
+          cd /opt/otus2025 && sudo git pull &&
+          sudo chmod +x scripts/*.sh &&
+          sudo ./scripts/deploy.sh
+        "
+        
+    - name: Deploy to ELK+Monitoring (192.168.140.134)
+      run: |
+        ssh -o StrictHostKeyChecking=no otus@192.168.140.134 "
+          sudo apt-get update && sudo apt-get install -y git &&
+          if [ ! -d '/opt/otus2025' ]; then
+            sudo git clone https://github.com/VKarpovV/otus2025.git /opt/otus2025
+          fi &&
+          cd /opt/otus2025 && sudo git pull &&
+          sudo chmod +x scripts/*.sh &&
+          sudo ./scripts/deploy.sh
+        "
