@@ -1,18 +1,23 @@
 ---
 - hosts: all
-  roles:
-    - common
+  become: yes
+  tasks:
+    - name: Install Docker and dependencies
+      apt:
+        name: "{{ item }}"
+        state: present
+        update_cache: yes
+      loop:
+        - docker.io
+        - docker-compose
+        - python3-pip
 
 - hosts: loadbalancer
-  roles:
-    - nginx
-
-- hosts: app_servers
-  roles:
-    - mysql_master
-
-- hosts: monitoring
-  roles:
-    - mysql_slave
-    - elk
-    - filebeat
+  become: yes
+  tasks:
+    - name: Run NGINX
+      docker_container:
+        name: nginx
+        image: nginx:latest
+        ports: ["80:80"]
+        volumes: ["/opt/nginx.conf:/etc/nginx/nginx.conf"]
