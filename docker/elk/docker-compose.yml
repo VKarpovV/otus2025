@@ -1,0 +1,11 @@
+version: '3'
+services:
+  elasticsearch:
+    image: elasticsearch:7.17.0
+    ports: ["9200:9200"]
+  logstash:
+    image: logstash:7.17.0
+    ports: ["5044:5044"]
+  kibana:
+    image: kibana:7.17.0
+    ports: ["5601:5601"]
