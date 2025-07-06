@@ -1,8 +1,0 @@
-filebeat.inputs:
-- type: filestream
-  enabled: true
-  paths:
-    - /var/log/*.log
-
-output.logstash:
-  hosts: ["192.168.140.134:5044"]
