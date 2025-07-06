@@ -1,3 +1,0 @@
-mysql_root_password: "securepassword"
-mysql_repl_user: "repl_user"
-mysql_repl_password: "repl_password"

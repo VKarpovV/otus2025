@@ -1,8 +1,0 @@
----
-- name: Configure replication
-  mysql_replication:
-    mode: changemaster
-    master_host: "{{ hostvars['app1']['ansible_host'] }}"
-    master_user: "{{ mysql_repl_user }}"
-    master_password: "{{ mysql_repl_password }}"
-    master_auto_position: 1
