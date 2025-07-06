@@ -1,0 +1,13 @@
+events {}
+http {
+    upstream backend {
+        server {{ hostvars['app1']['ansible_host'] }}:80;
+        server {{ hostvars['mon1']['ansible_host'] }}:80;
+    }
+    server {
+        listen 80;
+        location / {
+            proxy_pass http://backend;
+        }
+    }
+}

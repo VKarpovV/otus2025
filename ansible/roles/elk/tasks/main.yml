@@ -1,0 +1,14 @@
+---
+- name: Create ELK directories
+  file:
+    path: "{{ item }}"
+    state: directory
+  loop:
+    - /opt/elk/elasticsearch/data
+    - /opt/elk/kibana/config
+
+- name: Deploy ELK stack
+  docker_compose:
+    project_src: /opt/elk
+    files:
+      - docker-compose.yml

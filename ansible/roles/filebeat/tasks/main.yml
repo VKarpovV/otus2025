@@ -1,16 +1,19 @@
 ---
-- name: Установка Filebeat
-  ansible.builtin.apt:
+- name: Install Filebeat
+  apt:
     name: filebeat
     state: present
 
-- name: Настройка Filebeat
-  ansible.builtin.template:
+- name: Configure Filebeat
+  template:
     src: filebeat.yml.j2
     dest: /etc/filebeat/filebeat.yml
 
-- name: Запуск Filebeat
-  ansible.builtin.service:
+- name: Enable system module
+  command: filebeat modules enable system
+
+- name: Start Filebeat
+  service:
     name: filebeat
     state: started
     enabled: yes

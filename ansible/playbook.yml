@@ -1,25 +1,18 @@
 ---
-- name: Установка Docker на все серверы
-  hosts: all
-  become: yes
-  tasks:
-    - name: Установка Docker
-      ansible.builtin.apt:
-        name: docker.io
-        state: present
+- hosts: all
+  roles:
+    - common
 
-- name: Настройка NGINX (балансировщик)
-  hosts: loadbalancer
+- hosts: loadbalancer
   roles:
     - nginx
 
-- name: Настройка MySQL Master и Slave
-  hosts: app_servers
+- hosts: app_servers
   roles:
-    - mysql
+    - mysql_master
 
-- name: Настройка ELK и Filebeat
-  hosts: monitoring
+- hosts: monitoring
   roles:
+    - mysql_slave
     - elk
     - filebeat
