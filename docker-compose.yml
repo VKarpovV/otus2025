@@ -27,6 +27,8 @@ services:
       - mysql_master_data:/var/lib/mysql
     networks:
       - backend
+    ports:
+      - "3306:3306"
 
   # Сервисы для VM2
   apache2:
