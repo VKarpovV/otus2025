@@ -46,3 +46,14 @@ sleep 30
 MASTER_DATA=$(sudo docker exec otus2025-mysql_master-1 mysql -uroot -proot_password -e "SHOW BINARY LOG STATUS\G")
 MASTER_LOG_FILE=$(echo "$MASTER_DATA" | grep "File" | awk '{print $2}')
 MASTER_LOG_POS=$(echo "$MASTER_DATA" | grep "Position" | awk '{print $2}')
+
+# Настройте пользователя репликации
+sudo docker exec otus2025-mysql_master-1 mysql -uroot -proot_password -e "
+CREATE USER IF NOT EXISTS 'repl_user'@'%' IDENTIFIED BY 'repl_password';
+GRANT REPLICATION SLAVE ON *.* TO 'repl_user'@'%';
+FLUSH PRIVILEGES;"
+
+# Выведите данные для VM2
+echo "ДЛЯ НАСТРОЙКИ VM2 ВВЕДИТЕ СЛЕДУЮЩИЕ ДАННЫЕ:"
+echo "MASTER_LOG_FILE: $MASTER_LOG_FILE"
+echo "MASTER_LOG_POS: $MASTER_LOG_POS"
