@@ -17,18 +17,25 @@ services:
       - backend
 
   mysql_master:
-    image: mysql:8
-    environment:
-      MYSQL_ROOT_PASSWORD: root_password
-      MYSQL_DATABASE: mydb
-      MYSQL_REPLICATION_USER: repl_user
-      MYSQL_REPLICATION_PASSWORD: repl_password
-    volumes:
-      - mysql_master_data:/var/lib/mysql
-    ports:
-      - "3306:3306"
-    networks:
-      - backend
+  image: mysql:8
+  environment:
+    MYSQL_ROOT_PASSWORD: root_password
+    MYSQL_DATABASE: mydb
+    MYSQL_REPLICATION_USER: repl_user
+    MYSQL_REPLICATION_PASSWORD: repl_password
+  command: --server-id=1 --log-bin=mysql-bin --binlog-format=ROW --binlog-do-db=mydb  
+  ports:
+    - "3306:3306"  # Важно открыть порт
+
+mysql_slave:
+  image: mysql:8
+  environment:
+    MYSQL_ROOT_PASSWORD: root_password
+    MYSQL_MASTER_HOST: "192.168.140.132"  
+    MYSQL_MASTER_USER: repl_user
+    MYSQL_MASTER_PASSWORD: repl_password
+    MYSQL_MASTER_PORT: 3306
+  command: --server-id=2 --log-bin=mysql-bin --binlog-format=ROW --relay-log=mysql-relay-bin --read-only=1
 
   # Сервисы для VM2
   apache2:
