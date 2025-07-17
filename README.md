@@ -16,6 +16,7 @@ git clone https://github.com/VKarpovV/otus2025.git
 Шаг 2: Запуск скрипта
 
 chmod +x setup_vm*.sh
+
 ./setup_vm*.sh
 
 3. Мониторинг
