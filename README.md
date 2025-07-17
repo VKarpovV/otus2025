@@ -26,8 +26,11 @@ sudo apt update
 sudo apt install -y git curl net-tools
 
 5. Запускаем исправленный скрипт
+
 ./vm1/deploy.sh  # На VM1
+
 ./vm2/deploy.sh  # На VM2
+
 ./vm3/deploy.sh  # На VM3
 
 6. Мониторинг
