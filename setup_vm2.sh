@@ -27,12 +27,21 @@ cd otus2025
 # Запуск сервисов для VM2
 sudo docker compose up -d apache2 mysql_slave
 
-# Получение master позиции (нужно ввести данные из вывода SHOW MASTER STATUS на VM1)
-read -p "Enter MASTER_LOG_FILE (from VM1): " MASTER_LOG_FILE
-read -p "Enter MASTER_LOG_POS (from VM1): " MASTER_LOG_POS
+# Ждем полного запуска контейнеров
+echo "Ожидание запуска контейнеров..."
+while ! sudo docker ps | grep -q "otus2025-mysql_slave-1"; do
+    sleep 5
+done
+
+# Дополнительное ожидание для инициализации MySQL
+sleep 20
+
+# Получение master позиции
+read -p "Введите MASTER_LOG_FILE (из вывода на VM1, например mysql-bin.000001): " MASTER_LOG_FILE
+read -p "Введите MASTER_LOG_POS (из вывода на VM1, например 1234): " MASTER_LOG_POS
 
 # Настройка репликации на slave
-sudo docker exec -it mysql_slave mysql -uroot -proot_password -e "
+sudo docker exec otus2025-mysql_slave-1 mysql -uroot -proot_password -e "
 STOP SLAVE;
 CHANGE MASTER TO
 MASTER_HOST='192.168.140.132',
@@ -40,5 +49,8 @@ MASTER_USER='repl_user',
 MASTER_PASSWORD='repl_password',
 MASTER_LOG_FILE='$MASTER_LOG_FILE',
 MASTER_LOG_POS=$MASTER_LOG_POS;
-START SLAVE;
-SHOW SLAVE STATUS\G"
+START SLAVE;"
+
+# Проверка статуса репликации
+echo "Статус репликации:"
+sudo docker exec otus2025-mysql_slave-1 mysql -uroot -proot_password -e "SHOW SLAVE STATUS\G"
