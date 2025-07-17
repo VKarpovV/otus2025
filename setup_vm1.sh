@@ -25,9 +25,21 @@ cd otus2025
 # Запуск сервисов для VM1
 sudo docker compose up -d nginx apache1 mysql_master
 
+# Ждем полного запуска контейнеров
+echo "Ожидание запуска контейнеров..."
+while ! sudo docker ps | grep -q "otus2025-mysql_master-1"; do
+    sleep 5
+done
+
+# Дополнительное ожидание для инициализации MySQL
+sleep 20
+
 # Настройка репликации на master
-sudo docker exec -it mysql_master mysql -uroot -proot_password -e "
-CREATE USER 'repl_user'@'%' IDENTIFIED BY 'repl_password';
+sudo docker exec otus2025-mysql_master-1 mysql -uroot -proot_password -e "
+CREATE USER IF NOT EXISTS 'repl_user'@'%' IDENTIFIED BY 'repl_password';
 GRANT REPLICATION SLAVE ON *.* TO 'repl_user'@'%';
-FLUSH PRIVILEGES;
-SHOW MASTER STATUS;"
+FLUSH PRIVILEGES;"
+
+# Получаем статус мастера
+echo "Данные для настройки репликации на VM2:"
+sudo docker exec otus2025-mysql_master-1 mysql -uroot -proot_password -e "SHOW MASTER STATUS\G"
