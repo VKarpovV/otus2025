@@ -103,6 +103,31 @@ services:
     networks:
       - monitoring_net
 
+  mysql_exporter:
+    image: prom/mysqld-exporter
+    environment:
+      DATA_SOURCE_NAME: "root:rootpass@(mysql_master:3306)/"
+    ports:
+      - "9104:9104"
+    depends_on:
+      - mysql_master
+    networks:
+      - monitoring_net
+
+  node-exporter:
+    image: prom/node-exporter
+    ports:
+      - "9100:9100"
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.sysfs=/host/sys'
+      - '--collector.filesystem.ignored-mount-points=^/(sys|proc|dev|host|etc)($$|/)'
+    networks:
+      - monitoring_net
   # ELK Stack (VM3)
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:7.17.0
