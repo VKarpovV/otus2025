@@ -25,7 +25,7 @@ sudo apt update
 
 sudo apt install -y git curl net-tools
 
-5. Запускаем исправленный скрипт
+5. Запускаем скрипт
 
 ./vm1/deploy.sh  # На VM1
 
