@@ -25,13 +25,10 @@ services:
       MYSQL_REPLICATION_PASSWORD: repl_password
     volumes:
       - mysql_master_data:/var/lib/mysql
-    networks:
-      - backend
     ports:
       - "3306:3306"
     networks:
-  backend:
-    external: true
+      - backend
 
   # Сервисы для VM2
   apache2:
@@ -53,9 +50,6 @@ services:
       - mysql_slave_data:/var/lib/mysql
     networks:
       - backend
-  networks:
-  backend:
-    external: true
 
   # Сервисы для VM3
   prometheus:
@@ -90,6 +84,7 @@ services:
 networks:
   backend:
     driver: bridge
+    attachable: true  # Позволяет подключать контейнеры из разных compose-файлов
 
 volumes:
   mysql_master_data:
