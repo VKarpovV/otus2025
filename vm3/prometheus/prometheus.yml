@@ -1,0 +1,24 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  - job_name: 'apache-vm1'
+    static_configs:
+      - targets: ['192.168.140.132:8080']
+
+  - job_name: 'apache-vm2'
+    static_configs:
+      - targets: ['192.168.140.133:8080']
+
+  - job_name: 'mysql-master'
+    static_configs:
+      - targets: ['192.168.140.132:3306']
+
+  - job_name: 'mysql-slave'
+    static_configs:
+      - targets: ['192.168.140.133:3306']
