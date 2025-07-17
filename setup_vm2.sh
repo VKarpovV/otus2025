@@ -3,14 +3,14 @@
 # Обновление системы
 sudo apt update && sudo apt upgrade -y
 
-# Установка Docker 
+# Установка Docker
 sudo apt install -y apt-transport-https ca-certificates curl software-properties-common
 curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
 echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
 sudo apt update
 sudo apt install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
 
-# Клонирование репозитория
+# Клонирование репозитория (если не склонирован)
 if [ ! -d "otus2025" ]; then
     git clone https://github.com/VKarpovV/otus2025.git
     cd otus2025 || exit
@@ -19,37 +19,22 @@ else
     git pull origin main
 fi
 
-# Добавляем подготовку тестовой страницы Apache 
-mkdir -p apache2_html
-echo "<h1>Apache2 on VM2 (192.168.140.133)</h1>" > apache2_html/index.html
-
-# Запуск сервисов для VM2 
+# Запуск сервисов для VM2
 sudo docker compose up -d apache2 mysql_slave
 
-# Ожидание запуска контейнера (добавляем проверку)
-echo "Ожидание запуска MySQL Slave..."
-timeout=60
-while [ $timeout -gt 0 ]; do
-    if sudo docker ps | grep -q "mysql_slave"; then
-        break
-    fi
+# Ожидание запуска контейнера MySQL Slave
+echo "Ожидание запуска MySQL Slave (30 секунд)..."
+while ! sudo docker ps | grep -q "otus2025-mysql_slave-1"; do
     sleep 5
-    timeout=$((timeout-5))
-    echo "Осталось: ${timeout} секунд"
 done
+sleep 25  # Дополнительное время для инициализации MySQL
 
-if [ $timeout -eq 0 ]; then
-    echo "ОШИБКА: Контейнер mysql_slave не запустился"
-    sudo docker logs $(sudo docker ps -aqf "name=mysql_slave") | tail -20
-    exit 1
-fi
-
-# Запрос параметров репликации 
+# Запрос параметров репликации
 echo "Введите параметры, полученные с VM1:"
 read -p "MASTER_LOG_FILE (например: binlog.000003): " MASTER_LOG_FILE
 read -p "MASTER_LOG_POS (например: 856): " MASTER_LOG_POS
 
-# Настройка репликации с проверкой ошибок 
+# Настройка репликации с проверкой ошибок
 echo "Настройка репликации..."
 if ! sudo docker exec otus2025-mysql_slave-1 bash -c "
 mysql -uroot -proot_password <<'MYSQL_SCRIPT'
@@ -69,7 +54,7 @@ then
     exit 1
 fi
 
-# Проверка статуса репликации 
+# Проверка статуса репликации
 echo "Проверка статуса репликации..."
 STATUS=$(sudo docker exec otus2025-mysql_slave-1 mysql -uroot -proot_password -e "SHOW REPLICA STATUS\G")
 
@@ -83,15 +68,6 @@ else
     exit 1
 fi
 
-# Добавляем информацию о балансировке 
-echo "=== Информация о балансировке ==="
-echo "Apache2 на VM2 готов к работе:"
-echo "URL: http://192.168.140.133:8080"
-echo "Nginx на VM1 будет распределять запросы между:"
-echo "1. Apache1 (192.168.140.132:8080)"
-echo "2. Apache2 (192.168.140.133:8080)"
-echo "Проверить: curl http://192.168.140.132"
-
-# Тестовая проверка 
+# Тестовая проверка
 echo "Для теста создайте базу данных на VM1, затем проверьте её наличие здесь:"
 echo "sudo docker exec otus2025-mysql_slave-1 mysql -uroot -proot_password -e 'SHOW DATABASES;'"
