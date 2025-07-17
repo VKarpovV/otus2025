@@ -11,6 +11,10 @@ services:
       - apache2
     networks:
       - app_net
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
 
   # Apache Servers
   apache1:
@@ -18,12 +22,20 @@ services:
     hostname: apache1
     networks:
       - app_net
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
 
   apache2:
     image: httpd:alpine
     hostname: apache2
     networks:
       - app_net
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
 
   # MySQL Master (VM1)
   mysql_master:
@@ -36,10 +48,15 @@ services:
     volumes:
       - ./mysql/master/my.cnf:/etc/mysql/my.cnf
       - ./mysql/master/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - mysql_master_data:/var/lib/mysql
     ports:
       - "3306:3306"
     networks:
       - db_net
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
 
   # MySQL Slave (VM2)
   mysql_slave:
@@ -51,10 +68,15 @@ services:
       MYSQL_REPLICATION_PASSWORD: replpass
     volumes:
       - ./mysql/slave/my.cnf:/etc/mysql/my.cnf
+      - mysql_slave_data:/var/lib/mysql
     depends_on:
       - mysql_master
     networks:
       - db_net
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
 
   # Monitoring (VM3)
   prometheus:
@@ -62,20 +84,80 @@ services:
     ports:
       - "9090:9090"
     volumes:
-      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+    networks:
+      - monitoring_net
 
   grafana:
     image: grafana/grafana
     ports:
       - "3000:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
     depends_on:
       - prometheus
+    networks:
+      - monitoring_net
+
+  # ELK Stack (VM3)
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.17.0
+    environment:
+      - discovery.type=single-node
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
+    ports:
+      - "9200:9200"
+    networks:
+      - monitoring_net
+
+  logstash:
+    image: docker.elastic.co/logstash/logstash:7.17.0
+    volumes:
+      - ./logstash/logstash.conf:/usr/share/logstash/pipeline/logstash.conf
+    depends_on:
+      - elasticsearch
+    networks:
+      - monitoring_net
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:7.17.0
+    ports:
+      - "5601:5601"
+    depends_on:
+      - elasticsearch
+    networks:
+      - monitoring_net
+
+  filebeat:
+    image: docker.elastic.co/beats/filebeat:7.17.0
+    volumes:
+      - ./filebeat/filebeat.yml:/usr/share/filebeat/filebeat.yml
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    depends_on:
+      - elasticsearch
+      - logstash
+    networks:
+      - monitoring_net
 
 networks:
   app_net:
     driver: bridge
   db_net:
     driver: bridge
+  monitoring_net:
+    driver: bridge
+
+volumes:
   mysql_master_data:
   mysql_slave_data:
-  elk_data:
+  prometheus_data:
+  grafana_data:
+  elasticsearch_data:
