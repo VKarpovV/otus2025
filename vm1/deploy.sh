@@ -1,11 +1,15 @@
 #!/bin/bash
 
-# Установка зависимостей
+# Установка зависимостей с проверкой прав
 sudo apt-get update
-sudo apt-get install -y git curl
+sudo apt-get install -y git curl docker.io docker-compose
 
-# Установка Docker и Docker Compose
-./common/setup_docker.sh
+# Явный запуск скрипта установки Docker с sudo
+sudo bash ./common/setup_docker.sh
+
+# Добавление пользователя в группу docker
+sudo usermod -aG docker $USER
+newgrp docker
 
 # Создание сетей Docker
 docker network create frontend
@@ -15,4 +19,4 @@ docker network create backend
 docker-compose -f vm1/docker-compose.yml up -d
 
 # Настройка репликации MySQL
-./common/setup_replication.sh master 192.168.140.132 192.168.140.133
+sudo bash ./common/setup_replication.sh master 192.168.140.132 192.168.140.133
