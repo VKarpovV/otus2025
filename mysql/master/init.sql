@@ -1,0 +1,4 @@
+CREATE DATABASE mydb;
+CREATE USER 'repl_user'@'%' IDENTIFIED BY 'replpass';
+GRANT REPLICATION SLAVE ON *.* TO 'repl_user'@'%';
+FLUSH PRIVILEGES;
