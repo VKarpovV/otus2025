@@ -48,7 +48,7 @@ services:
     volumes:
       - ./apache2_html:/usr/local/apache2/htdocs  
 
-   mysql_slave:
+  mysql_slave:
     image: mysql:8
     environment:
       MYSQL_ROOT_PASSWORD: root_password
