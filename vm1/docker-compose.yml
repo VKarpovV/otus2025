@@ -14,15 +14,17 @@ services:
 
   apache:
     image: httpd:latest
+    hostname: vm1_apache_1  # Явное указание hostname
+    networks:
+      frontend:
+        aliases:
+          - apache.vm1
+      backend:
     ports:
       - "8080:80"
     volumes:
       - ./apache/httpd.conf:/usr/local/apache2/conf/httpd.conf
       - ./www:/var/www/html
-    networks:
-      - frontend
-      - backend
-    restart: always
 
   mysql-master:
     image: mysql:8.0
