@@ -26,12 +26,23 @@ echo "<h1>Apache2 on VM2 (192.168.140.133)</h1>" > apache2_html/index.html
 # Запуск сервисов для VM2 
 sudo docker compose up -d apache2 mysql_slave
 
-# Ожидание запуска контейнера MySQL Slave 
-echo "Ожидание запуска MySQL Slave (30 секунд)..."
-while ! sudo docker ps | grep -q "otus2025-mysql_slave-1"; do
+# Ожидание запуска контейнера (добавляем проверку)
+echo "Ожидание запуска MySQL Slave..."
+timeout=60
+while [ $timeout -gt 0 ]; do
+    if sudo docker ps | grep -q "mysql_slave"; then
+        break
+    fi
     sleep 5
+    timeout=$((timeout-5))
+    echo "Осталось: ${timeout} секунд"
 done
-sleep 25  # Дополнительное время для инициализации MySQL
+
+if [ $timeout -eq 0 ]; then
+    echo "ОШИБКА: Контейнер mysql_slave не запустился"
+    sudo docker logs $(sudo docker ps -aqf "name=mysql_slave") | tail -20
+    exit 1
+fi
 
 # Запрос параметров репликации 
 echo "Введите параметры, полученные с VM1:"
