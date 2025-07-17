@@ -15,8 +15,9 @@ git clone https://github.com/VKarpovV/otus2025.git
 
 Шаг 2: Запуск скрипта
 
-chmod +x vm1/deploy.sh
-./vm1/deploy.sh
+chmod +x vm*/deploy.sh
+chmod +x common/*.sh
+./vm*/deploy.sh
 
 3. Мониторинг
 
