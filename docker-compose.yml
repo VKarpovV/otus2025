@@ -10,7 +10,7 @@ services:
       - ./nginx.conf:/etc/nginx/nginx.conf
     networks:
       - backend
-    extra_hosts:  # Добавляем явное разрешение имен
+    extra_hosts:  
       - "apache2:192.168.140.133"
 
   apache1:
@@ -18,9 +18,9 @@ services:
     networks:
       - backend
     ports:
-      - "8080:80"  # Меняем порт для избежания конфликта
+      - "8080:80"  
     volumes:
-      - ./apache1_html:/usr/local/apache2/htdocs  # Для тестовой страницы
+      - ./apache1_html:/usr/local/apache2/htdocs  
 
   mysql_master:
     image: mysql:8
@@ -44,15 +44,52 @@ services:
     extra_hosts:
       - "apache1:192.168.140.132"
     ports:
-      - "8080:80"  # Меняем порт для избежания конфликта
+      - "8080:80"  
     volumes:
-      - ./apache2_html:/usr/local/apache2/htdocs  # Для тестовой страницы
+      - ./apache2_html:/usr/local/apache2/htdocs  
 
-  mysql_slave:
-    # ... (остается без изменений)
-  
+   mysql_slave:
+    image: mysql:8
+    environment:
+      MYSQL_ROOT_PASSWORD: root_password
+      MYSQL_MASTER_HOST: 192.168.140.132
+      MYSQL_MASTER_USER: repl_user
+      MYSQL_MASTER_PASSWORD: repl_password
+      MYSQL_MASTER_PORT: 3306
+    volumes:
+      - mysql_slave_data:/var/lib/mysql
+    networks:
+      - backend
+
   # Сервисы для VM3
-  # ... (остается без изменений)
+  prometheus:
+    image: prom/prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    networks:
+      - backend
+
+  grafana:
+    image: grafana/grafana
+    ports:
+      - "3000:3000"
+    networks:
+      - backend
+
+  elk:
+    image: sebp/elk:latest
+    ports:
+      - "5601:5601"
+      - "9200:9200"
+      - "5044:5044"
+    environment:
+      - ES_JAVA_OPTS=-Xms1g -Xmx1g
+    volumes:
+      - elk_data:/var/lib/elasticsearch
+    networks:
+      - backend
 
 networks:
   backend:
