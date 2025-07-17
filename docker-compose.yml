@@ -29,12 +29,17 @@ services:
       - backend
     ports:
       - "3306:3306"
+    networks:
+  backend:
+    external: true
 
   # Сервисы для VM2
   apache2:
     image: httpd:latest
     networks:
       - backend
+    extra_hosts:
+      - "apache1:192.168.140.132"
 
   mysql_slave:
     image: mysql:8
@@ -48,6 +53,9 @@ services:
       - mysql_slave_data:/var/lib/mysql
     networks:
       - backend
+  networks:
+  backend:
+    external: true
 
   # Сервисы для VM3
   prometheus:
