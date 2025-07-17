@@ -17,3 +17,11 @@ git clone https://github.com/VKarpovV/otus2025.git
 
 chmod +x setup_vm*.sh
 ./setup_vm*.sh
+
+3. Мониторинг
+
+    Prometheus: http://192.168.140.134:9090
+
+    Grafana: http://192.168.140.134:3000 (логин: admin, пароль: admin)
+
+    Kibana: http://192.168.140.134:5601
