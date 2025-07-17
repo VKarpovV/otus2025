@@ -27,30 +27,34 @@ cd otus2025
 # Запуск сервисов для VM2
 sudo docker compose up -d apache2 mysql_slave
 
-# Ждем полного запуска контейнеров
-echo "Ожидание запуска контейнеров..."
-while ! sudo docker ps | grep -q "otus2025-mysql_slave-1"; do
-    sleep 5
-done
+# Остановите контейнер, если запущен
+sudo docker stop otus2025-mysql_slave-1
 
-# Дополнительное ожидание для инициализации MySQL
-sleep 20
+# Создайте конфигурационный файл
+echo "[mysqld]
+server-id = 2
+log_bin = mysql-bin
+binlog_format = ROW
+relay-log = mysql-relay-bin
+log-slave-updates = 1
+read-only = 1" | sudo tee /etc/mysql/conf.d/replication.cnf
 
-# Получение master позиции
-read -p "Введите MASTER_LOG_FILE (из вывода на VM1, например mysql-bin.000001): " MASTER_LOG_FILE
-read -p "Введите MASTER_LOG_POS (из вывода на VM1, например 1234): " MASTER_LOG_POS
+# Запустите контейнер заново
+sudo docker start otus2025-mysql_slave-1
 
-# Настройка репликации на slave
+# Дождитесь запуска (30 секунд)
+sleep 30
+
+# Настройте репликацию (используем новый синтаксис MySQL 8.4+)
 sudo docker exec otus2025-mysql_slave-1 mysql -uroot -proot_password -e "
-STOP SLAVE;
-CHANGE MASTER TO
-MASTER_HOST='192.168.140.132',
-MASTER_USER='repl_user',
-MASTER_PASSWORD='repl_password',
-MASTER_LOG_FILE='$MASTER_LOG_FILE',
-MASTER_LOG_POS=$MASTER_LOG_POS;
-START SLAVE;"
+STOP REPLICA;
+CHANGE REPLICATION SOURCE TO
+SOURCE_HOST='192.168.140.132',
+SOURCE_USER='repl_user',
+SOURCE_PASSWORD='repl_password',
+SOURCE_LOG_FILE='$MASTER_LOG_FILE',
+SOURCE_LOG_POS=$MASTER_LOG_POS;
+START REPLICA;"
 
-# Проверка статуса репликации
-echo "Статус репликации:"
-sudo docker exec otus2025-mysql_slave-1 mysql -uroot -proot_password -e "SHOW SLAVE STATUS\G"
+# Проверьте статус
+sudo docker exec otus2025-mysql_slave-1 mysql -uroot -proot_password -e "SHOW REPLICA STATUS\G" | grep -E "Replica_IO_Running|Replica_SQL_Running|Last_Error"
