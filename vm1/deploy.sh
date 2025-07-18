@@ -37,5 +37,13 @@ docker ps -a
 curl -v http://localhost || echo "Проверка Nginx не удалась"
 docker exec -it vm1_apache_1 curl -s http://localhost || echo "Проверка Apache изнутри не удалась"
 
+# Авторепликатор
+if [ -f "../common/setup_replication.sh" ]; then
+    echo "Настройка репликации MySQL..."
+    cd ../common
+    chmod +x setup_replication.sh
+    ./setup_replication.sh
+fi
+
 # Возвращаем системные сервисы
 sudo systemctl start unattended-upgrades
