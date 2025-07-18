@@ -8,17 +8,25 @@ services:
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf
     depends_on:
-      - apache
+      apache:
+        condition: service_started
     networks:
       - app_network
+    restart: unless-stopped
 
   apache:
     image: httpd:latest
+    hostname: apache
     volumes:
       - ./apache/httpd.conf:/usr/local/apache2/conf/httpd.conf
       - ./www:/var/www/html
     networks:
       - app_network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
 
   mysql-master:
     image: mysql:8.0
@@ -37,6 +45,7 @@ services:
 
 networks:
   app_network:
+    driver: bridge
 
 volumes:
   mysql-data:
