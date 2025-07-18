@@ -1,18 +1,19 @@
 #!/bin/bash
 
-# Установка зависимостей
+# Установка Docker
 sudo apt-get update
-sudo apt-get install -y git curl
+sudo apt-get install -y docker.io docker-compose
+sudo systemctl enable docker
+sudo systemctl start docker
 
-# Установка Docker и Docker Compose
-./common/setup_docker.sh
+# Подготовка директорий
+mkdir -p www
+echo "<h1>Hello from VM2 Apache</h1>" > www/index.html
 
-# Создание сетей Docker
-docker network create frontend
-docker network create backend
+# Запуск сервисов
+docker-compose down
+docker-compose up -d
 
-# Запуск сервисов через Docker Compose
-docker-compose -f vm2/docker-compose.yml up -d
-
-# Настройка репликации MySQL
-./common/setup_replication.sh slave 192.168.140.133 192.168.140.132
+# Проверка
+echo "Проверка сервисов:"
+curl -I http://localhost:8080
