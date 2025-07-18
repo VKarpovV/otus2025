@@ -15,6 +15,16 @@ if ! command -v docker &> /dev/null; then
     sudo systemctl start docker
 fi
 
+sudo systemctl restart docker
+sleep 5  # Даем Docker время на перезапуск
+
+# Проверка работы Docker
+if ! docker run --rm hello-world; then
+    echo "Docker не работает правильно. Перезапускаем..."
+    sudo systemctl restart docker
+    sleep 5
+fi
+
 # Установка docker-compose
 if ! command -v docker-compose &> /dev/null; then
     sudo curl -L "https://github.com/docker/compose/releases/download/v2.24.5/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
