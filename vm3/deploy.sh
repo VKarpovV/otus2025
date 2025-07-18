@@ -1,5 +1,17 @@
 #!/bin/bash
 
+# Автоматическая настройка прав Docker
+if ! groups | grep -q docker; then
+    sudo usermod -aG docker $USER
+    exec sg docker newgrp $(id -gn)  # Перелогин в текущей сессии
+fi
+
+# Перезапуск Docker без запроса пароля
+sudo systemctl restart docker
+
+# Очистка предыдущих контейнеров
+docker-compose down 2>/dev/null
+
 # Переходим в директорию скрипта
 cd "$(dirname "$0")"
 
