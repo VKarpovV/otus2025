@@ -59,3 +59,9 @@ chmod +x setup_replication.sh
     Grafana: http://192.168.140.134:3000 (логин: admin, пароль: admin)
 
     Kibana: http://192.168.140.134:5601
+   ## Автоматическая настройка репликации MySQL
+
+Скрипт `common/setup_replication.sh` автоматически:
+1. Генерирует SSH-ключи при их отсутствии
+2. Настраивает доступ без пароля между VM1 и VM2
+3. Конфигурирует Master и Slave серверы MySQL
