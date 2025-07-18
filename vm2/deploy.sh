@@ -3,41 +3,37 @@
 # Переходим в директорию скрипта
 cd "$(dirname "$0")"
 
-# Останавливаем конфликтующие сервисы
-sudo systemctl stop apache2 nginx || true
-sudo systemctl stop unattended-upgrades
-
-# Очищаем блокировки
-sudo rm -f /var/lib/dpkg/lock-frontend
+# Очистка возможных блокировок
 sudo rm -f /var/lib/dpkg/lock
+sudo rm -f /var/lib/dpkg/lock-frontend
 
-# Установка Docker
-sudo apt-get update
-sudo apt-get install -y docker.io docker-compose
-sudo systemctl enable docker
-sudo systemctl start docker
+# Проверка и установка Docker
+if ! command -v docker &> /dev/null; then
+    sudo apt-get update
+    sudo apt-get install -y docker.io docker-compose
+fi
 
-# Настройка прав
-sudo usermod -aG docker $USER
-newgrp docker
+# Настройка прав Docker
+sudo usermod -aG docker $USER || true
+newgrp docker || true
 sudo systemctl restart docker
 
-# Подготовка директорий
+# Подготовка веб-контента
 mkdir -p www
 echo "<h1>VM2 Apache Service</h1><p>Host: $(hostname)</p>" > www/index.html
-sudo chown -R $USER:$USER www
+chmod -R 755 www
 
-# Запуск сервисов
+# Перезапуск сервисов
 docker-compose down
 docker-compose up -d --build
 
-# Ждем инициализации
-sleep 10
+# Ожидание инициализации
+echo "Ожидаем запуск сервисов..."
+sleep 15
 
 # Проверка
-echo "Проверка сервисов:"
+echo "Статус контейнеров:"
 docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
-curl -v http://localhost || echo "Проверка Apache не удалась"
 
-# Возвращаем системные сервисы
-sudo systemctl start unattended-upgrades
+echo "Проверка Apache:"
+curl -v http://localhost || echo "Проверка не удалась"
