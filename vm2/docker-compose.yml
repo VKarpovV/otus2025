@@ -4,33 +4,22 @@ services:
   apache:
     image: httpd:latest
     ports:
-      - "8080:80"
+      - "8080:8080"
     volumes:
       - ./apache/httpd.conf:/usr/local/apache2/conf/httpd.conf
       - ./www:/var/www/html
-    networks:
-      - frontend
-      - backend
     restart: always
 
   mysql-slave:
     image: mysql:8.0
-    ports:
-      - "3306:3306"
     environment:
       MYSQL_ROOT_PASSWORD: securepassword
+    ports:
+      - "3306:3306"
     volumes:
       - ./mysql/my.cnf:/etc/mysql/my.cnf
       - mysql-data:/var/lib/mysql
-    networks:
-      - backend
     restart: always
 
 volumes:
   mysql-data:
-
-networks:
-  frontend:
-    external: true
-  backend:
-    external: true
