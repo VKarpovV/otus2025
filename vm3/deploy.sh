@@ -1,15 +1,17 @@
 #!/bin/bash
 
-# Установка зависимостей
+# Установка Docker
 sudo apt-get update
-sudo apt-get install -y git curl
+sudo apt-get install -y docker.io docker-compose
+sudo systemctl enable docker
+sudo systemctl start docker
 
-# Установка Docker и Docker Compose
-./common/setup_docker.sh
+# Запуск сервисов
+docker-compose down
+docker-compose up -d
 
-# Создание сетей Docker
-docker network create monitoring
-docker network create logging
-
-# Запуск сервисов через Docker Compose
-docker-compose -f vm3/docker-compose.yml up -d
+# Проверка
+echo "Сервисы запущены:"
+echo "- Prometheus: http://localhost:9090"
+echo "- Grafana: http://localhost:3000"
+echo "- Kibana: http://localhost:5601"
