@@ -15,38 +15,15 @@ docker-compose down 2>/dev/null
 # Переходим в директорию скрипта
 cd "$(dirname "$0")"
 
-# Останавливаем автоматические обновления
-sudo systemctl stop unattended-upgrades
+docker-compose up -d --build
 
-# Очищаем возможные блокировки
-sudo rm -f /var/lib/dpkg/lock-frontend
-sudo rm -f /var/lib/dpkg/lock
+# Долгое ожидание для ELK
+sleep 30
 
-# Установка Docker
-sudo apt-get update
-sudo apt-get install -y docker.io docker-compose
-sudo systemctl enable docker
-sudo systemctl start docker
-
-# Добавляем пользователя в группу docker
-sudo usermod -aG docker $USER
-newgrp docker
-
-# Перезапускаем Docker
-sudo systemctl restart docker
-
-# Запуск сервисов
-docker-compose down
-docker-compose up -d
-
-# Даем время на запуск сервисов
-sleep 25
-
-# Проверка
-echo "Сервисы запущены:"
+echo "Сервисы VM3:"
+docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
+echo "Доступные интерфейсы:"
 echo "- Prometheus: http://localhost:9090"
-echo "- Grafana: http://localhost:3000"
+echo "- Grafana: http://localhost:3000 (admin/admin)"
 echo "- Kibana: http://localhost:5601"
 
-# Проверка контейнеров
-docker ps --format "table {{.Names}}\t{{.Status}}"
