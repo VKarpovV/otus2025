@@ -4,11 +4,16 @@ services:
   apache:
     image: httpd:latest
     ports:
-      - "8080:8080"
+      - "80:80"
     volumes:
       - ./apache/httpd.conf:/usr/local/apache2/conf/httpd.conf
       - ./www:/var/www/html
-    restart: always
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   mysql-slave:
     image: mysql:8.0
@@ -19,7 +24,7 @@ services:
     volumes:
       - ./mysql/my.cnf:/etc/mysql/my.cnf
       - mysql-data:/var/lib/mysql
-    restart: always
+    restart: unless-stopped
 
 volumes:
   mysql-data:
