@@ -18,6 +18,7 @@ services:
       - app_network
 
   mysql-slave:
+    container_name: mysql-slave  
     image: mysql:8.0
     environment:
       MYSQL_ROOT_PASSWORD: securepassword
