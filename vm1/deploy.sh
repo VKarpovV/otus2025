@@ -1,22 +1,20 @@
 #!/bin/bash
 
-# Установка зависимостей с проверкой прав
+# Установка Docker
 sudo apt-get update
-sudo apt-get install -y git curl docker.io docker-compose
+sudo apt-get install -y docker.io docker-compose
+sudo systemctl enable docker
+sudo systemctl start docker
 
-# Явный запуск скрипта установки Docker с sudo
-sudo bash ./common/setup_docker.sh
+# Подготовка директорий
+mkdir -p www
+echo "<h1>Hello from VM1 Apache</h1>" > www/index.html
 
-# Добавление пользователя в группу docker
-sudo usermod -aG docker $USER
-newgrp docker
+# Запуск сервисов
+docker-compose down
+docker-compose up -d
 
-# Создание сетей Docker
-docker network create frontend
-docker network create backend
-
-# Запуск сервисов через Docker Compose
-docker-compose -f vm1/docker-compose.yml up -d
-
-# Настройка репликации MySQL
-sudo bash ./common/setup_replication.sh master 192.168.140.132 192.168.140.133
+# Проверка
+echo "Проверка сервисов:"
+curl -I http://localhost
+curl -I http://localhost:8080
