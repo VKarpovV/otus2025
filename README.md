@@ -33,7 +33,26 @@ sudo apt install -y git curl net-tools
 
 ./vm3/deploy.sh  # На VM3
 
-6. Мониторинг
+6. Настроим репликацию MySQL между VM1 и VM2, выполните:
+
+   сначала настройте SSH-доступ без пароля:
+
+ssh-keygen
+
+ssh-copy-id kva@192.168.140.132
+
+ssh-copy-id kva@192.168.140.133
+
+    потом запустить скрипт
+     
+cd ~/otus2025/common
+
+chmod +x setup_replication.sh
+
+./setup_replication.sh
+
+
+7. Мониторинг
 
     Prometheus: http://192.168.140.134:9090
 
